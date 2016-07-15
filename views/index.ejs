@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="UTF-8">
+    <title>沒有極限</title>
+    <script src="http://s.codepen.io/assets/libs/modernizr.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/style.css">
+
+  </head>
+
+  <body>
+
+    <h1>沒有極限</h1>
+    <table class="rwd-table">
+      <thead>
+       <tr>
+        <td>報價時間：</td>
+        <td colspan="2"><%=jsondata[0].lt%></td>
+        <td colspan="1"></td>
+        <td>刷新時間：</td>
+        <td colspan="2"><%=jsondata[0].elt%></td>
+      </tr>
+      </thead>
+      <tr>
+        <th>商品</th>
+        <th>現價</th>
+        <th>持有股數</th>
+        <th>成本</th>
+        <th>市值</th>
+        <th>損益</th>
+        <th>報酬率</th>
+      </tr>
+      <% if(jsondata.length){
+
+                 for(var i = 0;i < jsondata.length;i++) {
+                   var now = new Number(((jsondata[i].l_cur*base[i].count)-base[i].spend));
+                   var earn = new Number((((jsondata[i].l_cur*base[i].count)-base[i].spend)/base[i].spend*100));
+                   %>
+                <tr>
+                    <td><%=jsondata[i].e%>:<%=jsondata[i].t%></td>
+                    <td>$<%=jsondata[i].l_cur%></td>
+                    <td><%=base[i].count%></td>
+                    <td>$<%=base[i].spend%></td>
+                    <td>$<%=(jsondata[i].l_cur*base[i].count)%></td>
+                    <td>$<%=Math.floor(now*100)/100;%></td>
+                    <td><%=Math.floor(earn*100)/100;%>%</td>
+                    <!-- <td><%=jsondata[i].lt%></td> -->
+                </tr>
+            <% }}%>
+      <tfoot>
+       <tr>
+        <th colspan="3"></th>
+        <th>總投資成本</th>
+        <th>總市值</th>
+        <th>總損益</th>
+      </tr>
+      <%
+      var total_spend=0;
+      var total_now=0;
+      var total_earn=0;
+      if(jsondata.length){
+
+                 for(var i = 0;i < jsondata.length;i++) {
+                  var spend_value = base[i].spend;
+                  total_spend = total_spend + spend_value;
+                  var now_value = (jsondata[i].l_cur*base[i].count);
+                  total_now = total_now + now_value;
+                  console.log(total_now);
+      }
+      total_earn = total_now - total_spend;
+
+}%>
+      <tr>
+          <td colspan="3"></td>
+          <td>$<%=Math.floor(total_spend*100)/100;%></td>
+          <td>$<%=Math.floor(total_now*100)/100;%></td>
+          <td>$<%=Math.floor(total_earn*100)/100;%></td>
+      </tr>
+      <tr>
+          <td colspan="3"></td>
+          <td>NTD <%=Math.floor(total_spend*3200)/100;%></td>
+          <td>NTD <%=Math.floor(total_now*3200)/100;%></td>
+          <td>NTD <%=Math.floor(total_earn*3200)/100;%></td>
+      </tr>
+
+      </tfoot>
+    </table>
+
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+    <!-- <script src="js/index.js"></script> -->
+
+  </body>
+</html>
