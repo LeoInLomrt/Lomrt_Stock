@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <!-- <meta charset="UTF-8" http-equiv="refresh" content="5" > -->
-    <title>沒有極限</title>
+
     <!-- <script src="http://s.codepen.io/assets/libs/modernizr.js" type="text/javascript"></script> -->
     <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.1/angular.js"></script>
@@ -27,19 +27,58 @@
         //   // var result = new EJS({url: 'index.ejs'}).render({jsondata:data.jsondata,base:data.base});
         //   // document.getElementById('supply_list').innerHTML = result;
         // });
-        app.controller('table3Ctrl', function table3Ctrl($scope) {
+        var timer;
 
-    $scope.bases = [
-        {spend: 123, count: 0},
-        {spend: 456, count: 0}
-    ];
-    socket.on('ngTableSocket', function (data) {
-        console.log(data.base[0].count);
-        $scope.bases = data.base;
-        $scope.$apply();
-        console.log($scope.bases[0].count);
-    });
-});
+
+    app.controller('table3Ctrl', function table3Ctrl($scope,$interval) {
+
+        // $scope.bases = [
+        //     {spend: 123, count: 0},
+        //     {spend: 456, count: 0}
+        // ];
+        socket.on('ngTableSocket', function (data) {
+          setTimeout(function() {
+              socket.emit('message', { 'bbb': 'aaa' });
+          }, 5000);
+            $scope.bases = data.base;
+            $scope.jsondatas = data.jsondata;
+            $scope.timelt=data.jsondata[0].lt;
+            $scope.timeelt=Date.now();
+            var total_spend=0;
+            var total_now=0;
+            var total_earn=0;
+
+            var USD=3218.5;
+
+                       for(var i = 0;i < $scope.jsondatas.length;i++) {
+                         $scope.jsondatas[i].spend = $scope.bases[i].spend;
+                         $scope.jsondatas[i].count = $scope.bases[i].count;
+                        var spend_value = $scope.bases[i].spend;
+                        total_spend = total_spend + spend_value;
+                        var now_value = ($scope.jsondatas[i].l_cur*$scope.bases[i].count);
+                        total_now = total_now + now_value;
+                      }
+
+            total_earn = total_now - total_spend-2107.4-57;
+            $scope.total_spend=Math.floor(total_spend*100)/100;
+            $scope.total_now=Math.floor(total_now*100)/100;
+            $scope.total_earn=Math.floor(total_earn*100)/100;
+            $scope.total_spend_NTD=Math.floor(total_spend*USD)/100;;
+            $scope.total_now_NTD=Math.floor(total_now*USD)/100;;
+            $scope.total_earn_NTD=Math.floor(total_earn*USD)/100;;
+                       for(var i = 0;i < $scope.jsondatas.length;i++) {
+                         $scope.jsondatas[i].now = Math.floor(new Number((($scope.jsondatas[i].l_cur*$scope.bases[i].count)-$scope.bases[i].spend))*100)/100;
+                         $scope.jsondatas[i].earn = Math.floor(new Number(((($scope.jsondatas[i].l_cur*$scope.bases[i].count)-$scope.bases[i].spend)/$scope.bases[i].spend*100))*100)/100;
+                         $scope.jsondatas[i].cost_avg = Math.floor(new Number($scope.bases[i].spend/$scope.bases[i].count)*100)/100;
+                      }
+
+
+
+
+                      $scope.$apply();
+
+        });
+      });
 
 
 
@@ -50,16 +89,17 @@
 
   <div class="span8" ng-controller="table3Ctrl">
   <!-- <body> -->
-
+  <title>沒有極限({{total_earn_NTD}})</title>
     <h1>沒有極限</h1>
     <table class="rwd-table">
       <thead>
-       <tr>
-        <td>報價時間：</td>
-        <td colspan="2"><%=jsondata[0].lt%></td>
-        <td colspan="1"></td>
-        <td>刷新時間：</td>
-        <td colspan="2"><%=jsondata[0].elt%></td>
+       <tr >
+         <td>報價時間：</td>
+         <td colspan="2">{{timelt}}</td>
+         <td colspan="1"></td>
+         <td>刷新時間：</td>
+         <td colspan="2">{{timeelt | date:'medium'}}</td>
+
       </tr>
       </thead>
       <tr>
@@ -72,24 +112,17 @@
         <th>損益</th>
         <th>報酬率</th>
       </tr>
-      <% if(jsondata.length){
-
-                 for(var i = 0;i < jsondata.length;i++) {
-                   var now = new Number(((jsondata[i].l_cur*base[i].count)-base[i].spend));
-                   var earn = new Number((((jsondata[i].l_cur*base[i].count)-base[i].spend)/base[i].spend*100));
-                   var cost_avg = new Number(base[i].spend/base[i].count);
-                   %>
-                <tr>
-                    <td><%=jsondata[i].e%>:<%=jsondata[i].t%></td>
-                    <td>$<%=jsondata[i].l_cur%></td>
-                    <td><%=base[i].count%></td>
-                    <td>$<%=Math.floor(cost_avg*100)/100;%></td>
-                    <td>$<%=base[i].spend%></td>
-                    <td>$<%=(jsondata[i].l_cur*base[i].count)%></td>
-                    <td>$<%=Math.floor(now*100)/100;%></td>
-                    <td><%=Math.floor(earn*100)/100;%>%</td>
+                <tr ng-repeat="jsondata in jsondatas" class="animate">
+                    <td>{{jsondata.e}}:{{jsondata.t}}</td>
+                    <td>${{jsondata.l_cur}}</td>
+                    <td>{{jsondata.count}}</td>
+                    <td>${{jsondata.cost_avg}}</td>
+                    <td>${{jsondata.spend}}</td>
+                    <td>${{(jsondata.l_cur*jsondata.count)}}</td>
+                    <td>${{jsondata.now}}</td>
+                    <td>{{jsondata.earn}}%</td>
                 </tr>
-            <% }}%>
+
       <tfoot>
        <tr>
         <th colspan="4"></th>
@@ -97,52 +130,22 @@
         <th>總市值</th>
         <th>總損益</th>
       </tr>
-      <%
-      var total_spend=0;
-      var total_now=0;
-      var total_earn=0;
 
-      var USD=3218.5;
-      if(jsondata.length){
-
-                 for(var i = 0;i < jsondata.length;i++) {
-                  var spend_value = base[i].spend;
-                  total_spend = total_spend + spend_value;
-                  var now_value = (jsondata[i].l_cur*base[i].count);
-                  total_now = total_now + now_value;
-                  console.log(total_now);
-      }
-      total_earn = total_now - total_spend-2107.4-57;
-
-}%>
       <tr>
           <td colspan="4"></td>
-          <td>$<%=Math.floor(total_spend*100)/100;%></td>
-          <td>$<%=Math.floor(total_now*100)/100;%></td>
-          <td>$<%=Math.floor(total_earn*100)/100;%></td>
+          <td>${{total_spend}}</td>
+          <td>${{total_now}}</td>
+          <td>${{total_earn}}</td>
       </tr>
       <tr>
           <td colspan="4"></td>
-          <td>NTD <%=Math.floor(total_spend*USD)/100;%></td>
-          <td>NTD <%=Math.floor(total_now*USD)/100;%></td>
-          <td>NTD <%=Math.floor(total_earn*USD)/100;%></td>
+          <td>NTD {{total_spend_NTD}}</td>
+          <td>NTD {{total_now_NTD}}</td>
+          <td>NTD {{total_earn_NTD}}</td>
       </tr>
 
       </tfoot>
     </table>
-    <!-- <script src="js/index.js"></script> -->
-
-  <!-- </body> -->
-  <!-- <body ng-app="myApp">
-
-<div class="span8" ng-controller="table3Ctrl"> -->
-<h3>WebSocket更新</h3>
-<table ng-table class="rwd-table">
-<tr ng-repeat="base in bases">
-<td title="Name">{{base.spend}}</td>
-<td title="Value">{{base.count}}</td>
-</tr>
-</table>
 </div>
     </body>
 </html>
